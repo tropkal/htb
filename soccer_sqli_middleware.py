@@ -10,8 +10,8 @@ def send_ws(payload):
 	# If the server returns a response on connect, use below line	
 	#resp = ws.recv() # If server returns something like a token on connect you can find and extract from here
 	
-	# For our case, format the payload in JSON
-	message = unquote(payload).replace('"','\'') # replacing " with ' to avoid breaking JSON structure
+	# format the payload in JSON
+	message = unquote(payload).replace('"','\'') # replacing " with ' to avoid breaking the JSON structure
 	data = '{"id":"%s"}' % message
 	print(data)
 

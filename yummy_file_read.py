@@ -178,7 +178,6 @@ def main():
             else:
                 print(file_contents)
 
-
             if " -o" in file:
                 output_file = file.split(" ")[2]
                 print("[+] Writing to file:", output_file + "\n")

@@ -171,7 +171,7 @@ def main():
             else:
                 file_contents = read_file(target_url, file)
             if "500 Internal Server Error" in file_contents:
-                print("[!] Error. You probably tried to list a directory and you can't do that. Can only read files.\n")
+                print("[!] Error. You don't have permissions to read the file or you probably tried to list a directory and you can't do that. Can only read files.\n")
             else:
                 print(file_contents)
 

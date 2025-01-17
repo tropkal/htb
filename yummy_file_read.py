@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import ast
 import sys
 import argparse
 import requests
@@ -148,6 +147,10 @@ def main():
     while True:
         try:
             file = input("file> ")
+            if "exit" in file:
+                print("\n[*] Exiting.")
+                exit(0)
+
             if " -o" in file:
                 file_to_read = file.split(" ")[0]
         except KeyboardInterrupt:
@@ -174,6 +177,7 @@ def main():
                 print("[!] Error. You probably tried to list a directory and you can't do that. Can only read files.\n")
             else:
                 print(file_contents)
+
 
             if " -o" in file:
                 output_file = file.split(" ")[2]

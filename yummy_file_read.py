@@ -149,11 +149,12 @@ def main():
                 print("\n[*] Exiting.")
                 exit(0)
 
-            if "" in file:
-                pass
+            elif file == "\n":
+                continue
 
-            if " -o" in file:
+            elif " -o" in file:
                 file_to_read = file.split(" ")[0]
+
         except KeyboardInterrupt:
             print("\n[*] Exiting.")
             exit(0)

@@ -136,7 +136,7 @@ def read_file(target_url, file_to_read):
     print()
     r = session.get(export_url, stream=True)
 
-    if b"ELF" in r.content or b"/lib/ld-linux-x86-64.so.2" in r.content or b"__libc_start_main__cxa_" in r.content:
+    if b"ELF" in r.content or b"/lib/ld-linux-x86-64.so.2" in r.content or b"__libc_start_main__cxa_" in r.content or b"PK" in r.content:
         output_mode = "binary"
         file_contents = r.content
     else:
@@ -189,7 +189,7 @@ def main():
                 file_contents, resp, output_mode = read_file(target_url, file)
 
             if output_mode == "binary" and not output:
-                print("[!] You tried to read a binary file, download it instead.")
+                print("[!] You tried to read a binary/zip file, download it instead.")
                 continue
             elif output_mode == "binary" and output:
                 pass

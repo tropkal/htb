@@ -13,14 +13,11 @@ parser = argparse.ArgumentParser(
         description="File disclosure tool for the yummy HTB box."
         )
 
-parser.add_argument("-u", "--url", help="target URL")
-parser.add_argument("-e", "--email", help="attacker email")
-parser.add_argument("-p", "--password", help="attacker password")
-args = parser.parse_args()
+parser.add_argument("-u", "--url", help="target URL", required=True)
+parser.add_argument("-e", "--email", help="attacker email", required=True)
+parser.add_argument("-p", "--password", help="attacker password", required=True)
 
-if len(sys.argv) < 6:
-    parser.print_help()
-    exit(0)
+args = parser.parse_args()
 
 target_url = args.url
 email = args.email
